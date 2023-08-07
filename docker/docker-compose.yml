@@ -1,0 +1,40 @@
+version: '3'
+services:
+  rocketchat:
+    image: rocketchat/rocket.chat:latest
+    command: bash -c "for i in `seq 1 30`; do node main.js && s=$$? && break || s=$$?; echo \"Tried $$i times. Waiting 5 secs...\"; sleep 5; done; (exit $$s)"
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - ROOT_URL=https://24asd.ru:3000
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+      - MAIL_URL=smtp://smtp.email
+      - MONGO_INITDB_ROOT_USERNAME=hotkey
+      - MONGO_INITDB_ROOT_PASSWORD=hotkey
+    depends_on:
+      - mongo
+    ports:
+      - 3000:3000
+  mongo:
+    image: mongo:latest
+    command: mongod --oplogSize 128 --noauth --bind_ip_all --storageEngine wiredTiger
+    restart: always
+    volumes:
+      - ./data/db:/data/db
+  nginx-proxy:
+    image: jonasal/nginx-certbot
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    environment:
+      - DEFAULT_EMAIL=ajratsagitov2129@gmail.com
+      - URL=24asd.ru
+      - CERTBOT_HOST=24asd.ru
+      - CERTBOT_EMAIL=ajratsagitvo2129@gmail.com
