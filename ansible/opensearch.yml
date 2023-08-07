@@ -1,0 +1,61 @@
+- hosts: localhost
+  vars:
+    opensearch_package_url: "https://artifacts.opensearch.org/releases/bundle/opensearch/2.9.0/opensearch-2.9.0-linux-x64.rpm"
+    opensearch_dashboards_package_url: "https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/2.9.0/opensearch-dashboards-2.9.0-linux-x64.rpm"
+    opensearch_network_host: "0.0.0.0"
+    opensearch_initial_state_transfer_timeout: "180s"
+    opensearch_admin_password: "admin"
+    opensearch_dashboards_password: "admin"
+
+  tasks:
+    - name: Download OpenSearch RPM package
+      get_url:
+        url: "{{ opensearch_package_url }}"
+        dest: "/tmp/opensearch.rpm"
+
+    - name: Download OpenSearch Dashboards RPM package
+      get_url:
+        url: "{{ opensearch_dashboards_package_url }}"
+        dest: "/tmp/opensearch-dashboards.rpm"
+
+    - name: Install OpenSearch and OpenSearch Dashboards RPMs
+      yum:
+        name:
+          - "/tmp/opensearch.rpm"
+          - "/tmp/opensearch-dashboards.rpm"
+        state: present
+
+    - name: Configure OpenSearch to listen on all interfaces
+      lineinfile:
+        path: "/etc/opensearch/opensearch.yml"
+        regexp: '^network.host:'
+        line: "network.host: {{ opensearch_network_host }}"
+
+    - name: Configure OpenSearch to allow all nodes to join the cluster
+      lineinfile:
+        path: "/etc/opensearch/opensearch.yml"
+        regexp: '^discovery.type:'
+        line: "discovery.type: single-node"
+
+    - name: Configure OpenSearch Dashboards to listen on all interfaces
+      lineinfile:
+        path: "/etc/opensearch-dashboards/opensearch_dashboards.yml"
+        regexp: '^server.host:'
+        line: "server.host: {{ opensearch_network_host }}"
+
+    - name: Start and enable OpenSearch and OpenSearch Dashboards services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      loop:
+        - opensearch
+        - opensearch-dashboards
+
+    - name: Change plugins.security.ssl.http.enabled to false in OpenSearch configuration
+      replace:
+        path: "/etc/opensearch/opensearch.yml"
+        regexp: '^plugins.security.ssl.http.enabled: true$'
+        replace: 'plugins.security.ssl.http.enabled: false'
+

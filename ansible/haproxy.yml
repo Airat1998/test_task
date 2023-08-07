@@ -1,0 +1,30 @@
+- name: Установка и настройка HAProxy
+  hosts: localhost
+  vars:
+    haproxy_port: 8080 
+
+  tasks:
+    - name: Установка HAProxy
+      yum:
+        name: haproxy
+        state: present
+
+    - name: Генерация конфигурации HAProxy
+      template:
+        src: haproxy.cfg.j2
+        dest: /etc/haproxy/haproxy.cfg
+      notify: Restart HAProxy
+
+    - name: Включение и запуск HAProxy
+      systemd:
+        name: haproxy
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+  handlers:
+    - name: Restart HAProxy
+      systemd:
+        name: haproxy
+        state: restarted
+
