@@ -1,0 +1,9 @@
+lsblk
+sudo mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc
+cat /proc/mdstat
+sudo parted /dev/md0 mklabel gpt
+sudo parted /dev/md0 mkpart primary ext4 1MiB 100%
+sudo mkfs.ext4 /dev/md0p1
+sudo mkdir /mnt/mdraid
+df -h
+fstab - /dev/md0p1   /mnt/mdraid   ext4   defaults   0   2
