@@ -1,0 +1,5 @@
+install smartmontools
+smartctl -a /dev/sda | grep "Model Family" - по информации о модели
+smartctl -a /dev/sda | grep "Transport protocol" - с помощью протокола
+smartctl -a /dev/sda | grep "Rotation Rate" - по инф. на интерфейсе
+smartctl -a /dev/sda | grep "Form Factor" - по форм фактору
