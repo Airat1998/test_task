@@ -58,4 +58,14 @@
         path: "/etc/opensearch/opensearch.yml"
         regexp: '^plugins.security.ssl.http.enabled: true$'
         replace: 'plugins.security.ssl.http.enabled: false'
-
+        
+    - name: shell securit
+      shell:
+        cmd: | /tools/securityadmin.sh -cd \
+        /etc/opensearch/opensearch-security/ -icl -nhnv -cacert \
+        /etc/opensearch/root-ca.pem -cert \ 
+        /etc/opensearch/kirk.pem -key \
+        /etc/opensearch/kirk-key.pem
+      args:
+	      chdir: /usr/share/opensearch/plugins/opensearch-security  
+        executable: /bin/bash
